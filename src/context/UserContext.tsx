@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../utils/api';
 
 interface User {
   id: string;
@@ -11,6 +12,8 @@ interface UserContextType {
   loading: boolean;
   error: string | null;
   logout: () => void;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (firstName: string, lastName: string, email: string, password: string) => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -28,20 +31,10 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       try {
-        const response = await fetch('http://localhost:4444/auth/singleUser', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-          credentials: "include"
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data);
-        } else {
-          setError('Failed to fetch user');
-        }
+        const response = await authAPI.getCurrentUser();
+        setUser(response.data);
       } catch (err) {
-        setError('Network error');
+        setError('Failed to fetch user');
       } finally {
         setLoading(false);
       }
@@ -52,13 +45,39 @@ export const UserProvider: React.FC<{ children: React.ReactNode }> = ({ children
   console.log(user);
   
 
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await authAPI.login({ email, password });
+      const { token, user: userData } = response.data;
+      localStorage.setItem('token', token);
+      setUser(userData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Login failed');
+      throw err;
+    }
+  };
+
+  const signup = async (firstName: string, lastName: string, email: string, password: string) => {
+    try {
+      const response = await authAPI.signup({ firstName, lastName, email, password });
+      const { token, user: userData } = response.data;
+      localStorage.setItem('token', token);
+      setUser(userData);
+      setError(null);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Signup failed');
+      throw err;
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
   };
 
   return (
-    <UserContext.Provider value={{ user, loading, error, logout }}>
+    <UserContext.Provider value={{ user, loading, error, logout, login, signup }}>
       {children}
     </UserContext.Provider>
   );
