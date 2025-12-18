@@ -24,18 +24,25 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch("http://localhost:4444/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include", // 🔥 REQUIRED
         body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        alert("Login successful!");
+        console.log(data);
+        
+        localStorage.setItem('token', data.token);
+        // alert("Login successful!");
         onClose();
+        window.location.reload();
       } else {
+        console.log(data);
+        
         alert(data.message || "Login failed");
       }
     } catch (err) {

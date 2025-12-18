@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import Navbar from "../components/Navbar";
+import AdminNavbar from "./AdminNavbar";
 import ProductForm from "./ProductForm";
 import ProductList from "./ProductList";
 import OrdersList from "./OrderLIst";
@@ -58,8 +58,7 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
-      {/* Use main site Navbar for consistent look */}
-      <Navbar />
+      <AdminNavbar />
       <div className="max-w-7xl mx-auto p-6 flex flex-col gap-8">
         <ProductForm onSubmit={handleAddProduct} initialData={editingProduct} />
         <ProductList products={products} onEdit={handleEditProduct} onDelete={handleDeleteProduct} />

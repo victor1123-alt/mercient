@@ -9,26 +9,29 @@ import AdminLogin from "./admin/AdminLogin";
 import RequireAdmin from "./admin/RequireAdmin";
 import LoginModal from "./components/LoginModal";
 import WhatsAppButton from "./components/WhatsAppButton";
+import { UserProvider } from "./context/UserContext";
 
 const App: React.FC = () => {
   return (
-    <CartProvider>
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/cart" element={<CartPage />} />
-          <Route path="/checkout" element={<Checkout />} />
-          <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
-          <Route path="/admin/login" element={<AdminLogin />} />
-          {/* Route-based modal: wrap LoginModal so it receives isOpen and onClose */}
-          <Route path="/login" element={<LoginModalRoute />} />
+    <UserProvider>
+      <CartProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/cart" element={<CartPage />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            {/* Route-based modal: wrap LoginModal so it receives isOpen and onClose */}
+            <Route path="/login" element={<LoginModalRoute />} />
 
 
-        </Routes>
-        {/* Show WhatsApp floating chat on all pages */}
-        <WhatsAppButton />
-      </BrowserRouter>
-    </CartProvider>
+          </Routes>
+          {/* Show WhatsApp floating chat on all pages */}
+          <WhatsAppButton />
+        </BrowserRouter>
+      </CartProvider>
+    </UserProvider>
   );
 };
 

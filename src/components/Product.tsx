@@ -64,7 +64,6 @@ const Product: React.FC = () => {
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   );
-
   const displayName =
     category && category !== "all"
       ? `${category.charAt(0).toUpperCase()}${category.slice(1)} Collection`
