@@ -237,3 +237,5 @@ const Product: React.FC = () => {
     </section>
   );
 };
+
+export default Product;

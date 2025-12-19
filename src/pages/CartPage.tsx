@@ -79,7 +79,6 @@ const CartPage: React.FC = () => {
       </div>
       </div>
     </div>
-    </div>
   );
 };
 
