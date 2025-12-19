@@ -10,7 +10,7 @@ const Home: React.FC = () => {
     <div className="bg-milk overflow-hidden dark:bg-darkblack min-h-screen text-slate-900 dark:text-white transition-colors duration-300">
       <Navbar />
       <div className="pt-18">
-        <Hero title="Welcome to Mericent" subtitle="Discover amazing products at great prices" />
+        <Hero/>
         <div className="mt-6">
           <CategoryNav />
           <Product />

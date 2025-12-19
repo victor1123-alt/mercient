@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
-import { useUser } from "../context/UserContext";
 
 interface SignupModalProps {
   isOpen: boolean;
@@ -17,7 +16,6 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, openLogin })
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { signup } = useUser();
 
   if (!isOpen) return null;
 
@@ -33,14 +31,26 @@ const SignupModal: React.FC<SignupModalProps> = ({ isOpen, onClose, openLogin })
 
     setLoading(true);
     try {
-      await signup(firstName, lastName, email, password);
-      alert("Signup successful!");
-      onClose();
+      const response = await fetch("/api/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ firstName, lastName, email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`Welcome ${data.user.email}! Signup successful.`);
+        onClose();
+      } else {
+        alert(data.message || "Signup failed.");
+      }
     } catch (error) {
-      alert("Signup failed. Please try again.");
-    } finally {
-      setLoading(false);
+      console.error("Signup error:", error);
+      alert("An error occurred. Try again later.");
     }
+
+    setLoading(false);
   };
 
   return (

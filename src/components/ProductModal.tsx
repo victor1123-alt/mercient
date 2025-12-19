@@ -2,16 +2,8 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiX } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import type { ProductItem } from "../context/CardContext";
 import { useCart } from "../context/CardContext";
-
-interface ProductItem {
-  _id: string;
-  productName: string;
-  description?: string;
-  price: number;
-  category?: string;
-  isAvailable: boolean;
-}
 
 interface ProductModalProps {
   isOpen: boolean;
@@ -37,7 +29,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
   if (!isOpen || !product) return null;
 
   // sample images (repeat the same image if no extras available)
-  const images = ["https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400", "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=400"];
+  const images = [product.img, product.img, product.img];
 
   const clothingSizes = ["S", "M", "L", "XL", "XXL"];
   const colorOptions = ["#111827", "#ef4444", "#10b981", "#3b82f6"];
@@ -52,18 +44,14 @@ const ProductModal: React.FC<ProductModalProps> = ({
 
   
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (needsSize && !selectedSize) {
       alert("Please select a size before adding to cart.");
       return;
     }
-    try {
-      await addToCart(product._id, 1);
-      onAdded?.(`${product.productName} (${selectedSize || "no size"}) added to cart`);
-      onClose();
-    } catch (err) {
-      alert('Failed to add to cart');
-    }
+    addToCart({ ...product, size: selectedSize, color: selectedColor });
+    onAdded?.(`${product.name} (${selectedSize || "no size"}) added to cart`);
+    onClose();
   };
 
   return (
@@ -75,13 +63,13 @@ const ProductModal: React.FC<ProductModalProps> = ({
       >
         <div className="flex flex-col md:flex-row items-start justify-between gap-4">
           <div className="md:w-1/2 w-full">
-            <img src={images[activeImage]} alt={product.productName} className="w-full h-64 md:h-80 object-cover rounded-md" />
+            <img src={images[activeImage]} alt={product.name} className="w-full h-64 md:h-80 object-cover rounded-md" />
             <div className="mt-3 flex gap-2 overflow-x-auto">
               {images.map((img, i) => (
                 <img
                   key={i}
                   src={img}
-                  alt={`${product.productName}-${i}`}
+                  alt={`${product.name}-${i}`}
                   onClick={() => setActiveImage(i)}
                   className={`w-20 h-16 object-cover rounded-md cursor-pointer border ${activeImage === i ? 'ring-2 ring-offset-1 ring-primary' : ''}`}
                 />
@@ -92,7 +80,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
           <div className="md:w-1/2 w-full">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="text-lg font-semibold">{product.productName}</h3>
+                <h3 className="text-lg font-semibold">{product.name}</h3>
                 <p className="text-primary font-bold mt-2">{product.price}</p>
               </div>
               <button onClick={onClose} aria-label="Close" title="Close" className="text-gray-600 dark:text-gray-300"><FiX /></button>
@@ -145,7 +133,7 @@ const ProductModal: React.FC<ProductModalProps> = ({
             {/* Add to cart */}
             <div className="mt-6 flex gap-2">
               <button onClick={handleAdd} className="bg-primary text-white px-4 py-2 rounded w-full">Add to Cart</button>
-              <button onClick={async () => { try { await addToCart(product._id, 1); onClose(); navigate('/checkout'); } catch (err) { alert('Failed to add to cart'); } }} className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded w-full">Buy Now</button>
+              <button onClick={() => { addToCart({ ...product, size: selectedSize, color: selectedColor }); onClose(); navigate('/checkout'); }} className="bg-gray-100 dark:bg-gray-700 px-4 py-2 rounded w-full">Buy Now</button>
             </div>
           </div>
         </div>

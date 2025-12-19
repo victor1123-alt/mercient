@@ -8,7 +8,7 @@ interface WhatsAppButtonProps {
 }
 
 function toInternational(phone?: string) {
-  if (!phone) return "2347072074319";
+  if (!phone) return "2347044350689";
   let p = String(phone).trim();
   if (p.startsWith("+")) p = p.slice(1);
   if (p.startsWith("0")) p = `234${p.slice(1)}`;

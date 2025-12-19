@@ -14,7 +14,7 @@ import { Country, State, City } from "country-state-city";
  */
 
 const CheckoutPage: React.FC = () => {
-  const { cart, checkout, clearCart } = useCart();
+  const { cartItems, totalAmount, clearCart } = useCart();
 
   // Shipping options from admin/backend
   const [shippingOptions, setShippingOptions] = useState<
@@ -42,7 +42,7 @@ const CheckoutPage: React.FC = () => {
   const allCountries = Country.getAllCountries();
 
   // Final total includes shipping fee
-  const finalTotal = (cart?.totalPrice || 0) + (shippingFee || 0);
+  const finalTotal = (Number(totalAmount) || 0) + (shippingFee || 0);
 
   // Fetch shipping options from backend (admin-controlled)
   useEffect(() => {
@@ -75,10 +75,29 @@ const CheckoutPage: React.FC = () => {
     }
 
     try {
-      const shippingAddress = `${deliveryInfo.fullName}, ${deliveryInfo.phone}, ${deliveryInfo.cityName}, ${deliveryInfo.stateName}, ${deliveryInfo.countryName}`;
-      await checkout(shippingAddress, "credit_card"); // Assuming credit_card for now
-      alert("Order placed successfully!");
-      clearCart();
+      const res = await fetch("/api/create-payment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: finalTotal,
+          items: cartItems,
+          shipping: {
+            state: selectedShippingState,
+            fee: shippingFee,
+          },
+          delivery: deliveryInfo,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.payment_url) {
+        // clear the cart locally then redirect to payment provider
+        clearCart();
+        window.location.href = data.payment_url;
+      } else {
+        console.error("create-payment response:", data);
+        alert("Payment URL not returned by backend.");
+      }
     } catch (error) {
       console.error(error);
       alert("Something went wrong. Try again.");
@@ -164,28 +183,52 @@ const CheckoutPage: React.FC = () => {
           <div className="flex-1 bg-white dark:bg-gray-800 p-6 rounded-xl shadow-md">
             <h2 className="text-2xl font-semibold mb-4">Your Orders</h2>
 
-            <div className="flex flex-col gap-3 mb-4 max-h-96 overflow-y-auto">
-              {!cart || cart.items.length === 0 && <p>No items in cart.</p>}
-
-              {cart?.items.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex justify-between items-center border-b border-gray-300 dark:border-gray-600 pb-2"
-                >
-                  <span>
-                    {item.productId.productName} × {item.quantity}
-                  </span>
-                  <span className="font-semibold">
-                    N{(item.price * item.quantity).toLocaleString()}
-                  </span>
-                </div>
-              ))}
+            <div className="overflow-x-auto mb-4">
+              {cartItems.length === 0 ? (
+                <p>No items in cart.</p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-gray-600 dark:text-gray-300">
+                      <th className="pb-2">Item</th>
+                      <th className="pb-2">Details</th>
+                      <th className="pb-2 text-center">Qty</th>
+                      <th className="pb-2 text-right">Unit</th>
+                      <th className="pb-2 text-right">Total</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {cartItems.map((item, index) => {
+                      const unitPrice = parseFloat(String(item.price).replace(/[^0-9.-]+/g, "")) || 0;
+                      const qty = Number(item.quantity || 1);
+                      const lineTotal = unitPrice * qty;
+                      return (
+                        <tr key={index} className="border-b border-gray-200 dark:border-gray-700">
+                          <td className="py-3 flex items-center gap-3 w-1/3">
+                            <img src={item.img} alt={item.name} className="w-12 h-12 object-cover rounded" />
+                            <div>
+                              <div className="font-medium">{item.name}</div>
+                            </div>
+                          </td>
+                          <td className="py-3">
+                            {item.size && <div>Size: <span className="font-medium">{item.size}</span></div>}
+                            {item.color && <div>Color: <span className="font-medium">{item.color}</span></div>}
+                          </td>
+                          <td className="py-3 text-center">{qty}</td>
+                          <td className="py-3 text-right">₦{unitPrice.toLocaleString()}</td>
+                          <td className="py-3 text-right font-semibold">₦{lineTotal.toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              )}
             </div>
 
             <div className="mb-4">
-              <p className="text-lg font-semibold">Subtotal: N{(cart?.totalPrice || 0).toLocaleString()}</p>
-              <p className="text-lg font-semibold">Shipping: N{shippingFee.toLocaleString()}</p>
-              <p className="text-xl font-bold mt-2">Total: N{finalTotal.toLocaleString()}</p>
+              <p className="text-lg font-semibold">Subtotal: ₦{Number(totalAmount).toLocaleString()}</p>
+              <p className="text-lg font-semibold">Shipping: ₦{shippingFee.toLocaleString()}</p>
+              <p className="text-xl font-bold mt-2">Total: ₦{finalTotal.toLocaleString()}</p>
             </div>
 
             <button
@@ -262,11 +305,11 @@ const CheckoutPage: React.FC = () => {
                     aria-label="Country phone code"
                 >
                   <option value="">Code</option>
-                  {allCountries.map((c) => (
-                    <option key={c.isoCode} value={c.phonecode ?? ""}>
-                      {c.flag ?? c.isoCode} {c.name} ({c.phonecode ?? ""})
-                    </option>
-                  ))}
+                    {allCountries.map((c) => (
+                      <option key={c.isoCode} value={c.phonecode ?? ""}>
+                        {c.flag ?? c.isoCode} {c.name} ({c.phonecode ?? ""})
+                      </option>
+                    ))}
                 </select>
 
                 <input

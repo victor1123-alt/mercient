@@ -7,7 +7,6 @@ import { useCart } from "../context/CardContext";
 import CartModal from "./CartModal";
 import SignupModal from "./SignupModal";
 import LoginModal from "./LoginModal";
-import { useUser } from "../context/UserContext";
 
 
 const Navbar: React.FC = () => {
@@ -19,9 +18,7 @@ const Navbar: React.FC = () => {
     const [showLogin, setShowLogin] = useState(false);
 
 
-  const { cart } = useCart();
-  const cartCount = cart?.totalItems || 0;
-  const { user, logout } = useUser();
+  const { cartCount } = useCart();
   const isAdmin = Boolean(typeof window !== 'undefined' && localStorage.getItem('admin_token'));
 
   const handleAdminLogout = () => {
@@ -93,34 +90,22 @@ const Navbar: React.FC = () => {
             <ThemeToggle />
 
             {/* ✅ Sign Up Button (Restored) */}
-            <div className="hidden md:flex items-center gap-2">
-              {user ? (
-                <>
-                  <span className="text-slate-900 dark:text-white">Welcome, {user.name}</span>
-                  <button
-                    onClick={logout}
-                    className="bg-red-500 text-white text-sm px-4 py-2 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : isAdmin ? (
-                <>
-                  <a href="/admin" className="text-sm px-2 py-1 hover:underline">Admin</a>
-                  <button onClick={handleAdminLogout} className="text-sm px-2 py-1 text-red-600">Logout</button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowSignup(true)}
-                    className="bg-primary text-white text-sm px-4 py-2 rounded-full hover:bg-secondary transition-colors"
-                  >
-                    Sign Up
-                  </button>
-                  <a href="/admin/login" className="text-sm px-2 py-1 hover:underline">Admin Login</a>
-                </>
-              )}
-            </div>
+            <button
+              onClick={() => setShowSignup(true)}
+              className="hidden md:inline-block bg-primary text-white text-sm px-4 py-2 rounded-full hover:bg-secondary transition-colors"
+            >
+              Sign Up
+            </button>
+
+            {/* Admin controls (only visible if admin token present) */}
+            {isAdmin ? (
+              <div className="hidden md:flex items-center gap-2">
+                <a href="/admin" className="text-sm px-2 py-1 hover:underline">Admin</a>
+                <button onClick={handleAdminLogout} className="text-sm px-2 py-1 text-red-600">Logout</button>
+              </div>
+            ) : (
+              <a href="/admin/login" className="hidden md:inline text-sm px-2 py-1 hover:underline">Admin Login</a>
+            )}
 
             {/* Mobile Menu Toggle */}
             <button
@@ -160,35 +145,12 @@ const Navbar: React.FC = () => {
             <a href="#" className="block hover:text-primary">Deals</a>
             <a href="#" className="block hover:text-primary">Contact Us</a>
 
-            {/* ✅ Mobile Sign Up/Login */}
-            <div className="space-y-2">
-              {user ? (
-                <>
-                  <span className="block text-slate-900 dark:text-white">Welcome, {user.name}</span>
-                  <button
-                    onClick={logout}
-                    className="w-full bg-red-500 text-white text-sm px-4 py-2 rounded-full hover:bg-red-600 transition-colors"
-                  >
-                    Logout
-                  </button>
-                </>
-              ) : isAdmin ? (
-                <>
-                  <a href="/admin" className="block hover:text-primary">Admin</a>
-                  <button onClick={handleAdminLogout} className="w-full bg-red-500 text-white text-sm px-4 py-2 rounded-full hover:bg-red-600 transition-colors">Admin Logout</button>
-                </>
-              ) : (
-                <>
-                  <button
-                    onClick={() => setShowSignup(true)}
-                    className="w-full bg-primary text-white text-sm px-4 py-2 rounded-full hover:bg-secondary transition-colors"
-                  >
-                    Sign Up
-                  </button>
-                  <a href="/admin/login" className="block hover:text-primary">Admin Login</a>
-                </>
-              )}
-            </div>
+            {/* ✅ Mobile Sign Up */}
+            <button 
+                      onClick={() => setShowSignup(true)}
+className="w-full bg-primary text-white text-sm px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+              Sign Up
+            </button>
           </div>
         )}
       </nav>

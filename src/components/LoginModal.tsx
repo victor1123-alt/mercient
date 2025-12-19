@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
-import { useUser } from "../context/UserContext";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -13,7 +12,6 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { login } = useUser();
 
   if (!isOpen) return null;
 
@@ -24,14 +22,27 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
 
     setLoading(true);
+
     try {
-      await login(email, password);
-      onClose();
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert("Login successful!");
+        onClose();
+      } else {
+        alert(data.message || "Login failed");
+      }
     } catch (err) {
-      alert("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
+      alert("Something went wrong. Try again.");
     }
+
+    setLoading(false);
   };
 
   return (
