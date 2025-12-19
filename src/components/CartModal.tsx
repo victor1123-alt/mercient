@@ -7,7 +7,19 @@ interface CartModalProps {
 }
 
 const CartModal: React.FC<CartModalProps> = ({ onClose, onCheckout }) => {
-  const { cartItems, increaseQty, decreaseQty, totalPrice } = useCart();
+  const { cart, updateCartItem, removeFromCart, loading } = useCart();
+
+  const handleIncreaseQty = async (itemId: string, currentQty: number) => {
+    await updateCartItem(itemId, currentQty + 1);
+  };
+
+  const handleDecreaseQty = async (itemId: string, currentQty: number) => {
+    if (currentQty > 1) {
+      await updateCartItem(itemId, currentQty - 1);
+    } else {
+      await removeFromCart(itemId);
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-start pt-20 z-[100]">
@@ -22,38 +34,40 @@ const CartModal: React.FC<CartModalProps> = ({ onClose, onCheckout }) => {
           Your Cart
         </h2>
 
-        {cartItems.length === 0 ? (
+        {!cart || cart.items.length === 0 ? (
           <p className="text-gray-500 text-center py-10">Your cart is empty.</p>
         ) : (
           <div className="space-y-4 max-h-[300px] overflow-y-auto">
-            {cartItems.map((item, index) => (
+            {cart.items.map((item) => (
               <div
-                key={index}
+                key={item._id}
                 className="flex items-center justify-between border-b pb-2"
               >
                 <img
-                  src={item.img}
-                  alt={item.name}
+                  src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100" // Placeholder
+                  alt={item.productId.productName}
                   className="w-14 h-14 rounded-md object-cover"
                 />
                 <div className="flex-1 px-3">
                   <p className="font-medium text-gray-900 dark:text-white">
-                    {item.name}
+                    {item.productId.productName}
                   </p>
                   <p className="text-sm text-primary font-semibold">
-                    {item.price}
+                    N{item.price}
                   </p>
                   <div className="flex items-center gap-2 mt-1">
                     <button
-                      onClick={() => decreaseQty(item.name)}
-                      className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                      onClick={() => handleDecreaseQty(item._id, item.quantity)}
+                      disabled={loading}
+                      className="px-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
                     >
                       -
                     </button>
                     <span>{item.quantity}</span>
                     <button
-                      onClick={() => increaseQty(item.name)}
-                      className="px-2 bg-gray-200 dark:bg-gray-700 rounded"
+                      onClick={() => handleIncreaseQty(item._id, item.quantity)}
+                      disabled={loading}
+                      className="px-2 bg-gray-200 dark:bg-gray-700 rounded disabled:opacity-50"
                     >
                       +
                     </button>
@@ -65,16 +79,17 @@ const CartModal: React.FC<CartModalProps> = ({ onClose, onCheckout }) => {
         )}
 
         {/* Total + Checkout */}
-        {cartItems.length > 0 && (
+        {cart && cart.items.length > 0 && (
           <div className="mt-5 border-t pt-3">
             <p className="font-semibold text-lg mb-3 text-gray-900 dark:text-white">
-              Total: ₦{totalPrice.toLocaleString()}
+              Total: N{cart.totalPrice.toLocaleString()}
             </p>
             <button
               onClick={onCheckout}
-              className="w-full bg-primary text-white py-2 rounded-lg hover:bg-green-600 transition"
+              disabled={loading}
+              className="w-full bg-primary text-white py-2 rounded-lg hover:bg-green-600 transition disabled:opacity-50"
             >
-              Checkout
+              {loading ? 'Processing...' : 'Checkout'}
             </button>
           </div>
         )}

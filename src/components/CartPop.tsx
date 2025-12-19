@@ -9,7 +9,19 @@ interface CartPopupProps {
 }
 
 const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose, onCheckout }) => {
-  const { cartItems, increaseQty, decreaseQty, totalPrice } = useCart();
+  const { cart, updateCartItem, removeFromCart, loading } = useCart();
+
+  const handleIncreaseQty = async (itemId: string, currentQty: number) => {
+    await updateCartItem(itemId, currentQty + 1);
+  };
+
+  const handleDecreaseQty = async (itemId: string, currentQty: number) => {
+    if (currentQty > 1) {
+      await updateCartItem(itemId, currentQty - 1);
+    } else {
+      await removeFromCart(itemId);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -34,28 +46,30 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose, onCheckout }) =>
           >
             <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Your Cart</h2>
 
-            {cartItems.length === 0 ? (
+            {!cart || cart.items.length === 0 ? (
               <p className="text-gray-600 text-center mt-20">Your cart is empty.</p>
             ) : (
               <>
                 <div className="flex flex-col gap-4">
-                  {cartItems.map((item, index) => (
-                    <div key={index} className="flex items-center justify-between border-b pb-2">
-                      <img src={item.img} alt={item.name} className="w-16 h-16 object-cover rounded" />
+                  {cart.items.map((item) => (
+                    <div key={item._id} className="flex items-center justify-between border-b pb-2">
+                      <img src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=100" alt={item.productId.productName} className="w-16 h-16 object-cover rounded" />
                       <div className="flex-1 ml-3">
-                        <h3 className="font-medium">{item.name}</h3>
-                        <p className="text-gray-500">{item.price}</p>
+                        <h3 className="font-medium">{item.productId.productName}</h3>
+                        <p className="text-gray-500">N{item.price}</p>
                         <div className="flex items-center gap-2 mt-1">
                           <button
-                            className="px-2 py-1 bg-gray-200 rounded"
-                            onClick={() => decreaseQty(item.name)}
+                            className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                            onClick={() => handleDecreaseQty(item._id, item.quantity)}
+                            disabled={loading}
                           >
                             -
                           </button>
                           <span>{item.quantity}</span>
                           <button
-                            className="px-2 py-1 bg-gray-200 rounded"
-                            onClick={() => increaseQty(item.name)}
+                            className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                            onClick={() => handleIncreaseQty(item._id, item.quantity)}
+                            disabled={loading}
                           >
                             +
                           </button>
@@ -68,13 +82,14 @@ const CartPopup: React.FC<CartPopupProps> = ({ isOpen, onClose, onCheckout }) =>
                 <div className="mt-6 border-t pt-4">
                   <div className="flex justify-between text-lg font-medium">
                     <span>Total:</span>
-                    <span>${totalPrice.toFixed(2)}</span>
+                    <span>N{cart.totalPrice.toFixed(2)}</span>
                   </div>
                   <button
                     onClick={onCheckout}
-                    className="w-full bg-green-600 text-white py-2 mt-4 rounded hover:bg-green-700 transition-all"
+                    disabled={loading}
+                    className="w-full bg-green-600 text-white py-2 mt-4 rounded hover:bg-green-700 transition-all disabled:opacity-50"
                   >
-                    Checkout
+                    {loading ? 'Processing...' : 'Checkout'}
                   </button>
                 </div>
               </>

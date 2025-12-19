@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { FiX, FiEye, FiEyeOff } from "react-icons/fi";
+import { useUser } from "../context/UserContext";
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -12,6 +13,7 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { login } = useUser();
 
   if (!isOpen) return null;
 
@@ -22,34 +24,14 @@ const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose }) => {
     }
 
     setLoading(true);
-
     try {
-      const response = await fetch("http://localhost:4444/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include", // 🔥 REQUIRED
-        body: JSON.stringify({ email, password }),
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        console.log(data);
-        
-        localStorage.setItem('token', data.token);
-        // alert("Login successful!");
-        onClose();
-        window.location.reload();
-      } else {
-        console.log(data);
-        
-        alert(data.message || "Login failed");
-      }
+      await login(email, password);
+      onClose();
     } catch (err) {
-      alert("Something went wrong. Try again.");
+      alert("Login failed. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   return (

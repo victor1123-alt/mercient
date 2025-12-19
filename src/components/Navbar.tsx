@@ -19,7 +19,8 @@ const Navbar: React.FC = () => {
     const [showLogin, setShowLogin] = useState(false);
 
 
-  const { cartCount } = useCart();
+  const { cart } = useCart();
+  const cartCount = cart?.totalItems || 0;
   const { user, logout } = useUser();
   const isAdmin = Boolean(typeof window !== 'undefined' && localStorage.getItem('admin_token'));
 
